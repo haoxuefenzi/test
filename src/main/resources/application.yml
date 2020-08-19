@@ -1,0 +1,16 @@
+
+spring:
+ datasource:
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://127.0.0.1:3306/test?autoReconnect=true&useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+  username: root
+  password: 123456
+  type: com.alibaba.druid.pool.DruidDataSource
+ resources:
+  static-locations: classpath:/static/,classpath:/templates/
+
+mybatis:
+ mapper-locations: classpath:com/wang/test/dao/*.xml
+ type-aliases-package: com.wang.test.entity
+ configuration:
+  map-underscore-to-camel-case: true

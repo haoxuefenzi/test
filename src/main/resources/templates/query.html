@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>test</title>
+    <link rel="stylesheet" href="../static/layui/css/layui.css">
+</head>
+<body>
+
+<script src="../static/layui/layui.js"></script>
+<script src="../static/layui/layui.all.js"></script>
+<script type="text/javascript"  th:inline="none"></script>
+<div class="layui-container">
+            <form class="layui-form layui-form-pane" action="" style="margin-top: 25px;margin-left: 35px;">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">电话</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="mobile" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">性别</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="sex" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">地址</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="address" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                    </div>
+                </div>
+            </form>
+</div>
+    <div class="layui-row" style="    margin-left: 50px;
+    margin-right: 50px;">
+        <table id="demo" lay-filter="test"></table>
+    </div>
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                <!--                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>-->
+            </div>
+        </script>
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+        <script>
+            layui.use(['form', 'table'], function(){
+                var $ = layui.jquery,
+                    form = layui.form,
+                    table = layui.table;
+        //第一个实例
+        table.render({
+        elem: '#demo'
+        ,height: 312
+        ,toolbar: '#toolbarDemo'
+        ,defaultToolbar: ['filter', 'exports', 'print', {
+                    title: '提示',
+                    layEvent: 'LAYTABLE_TIPS',
+                    icon: 'layui-icon-tips'
+                }]
+        , id: 'tableOne'
+        ,url: '/queryAll' //数据接口
+        ,skin: 'line'
+        ,page: true //开启分页
+
+                // ,where: {
+                //     'start' : start,
+                //     'end' : end,
+                //     'type' : type
+                // }
+        ,cols: [
+            [
+        {field: 'id', title: 'id',width:50}
+        ,{field: 'mobile', title: '电话'}
+        ,{field: 'password', title: '密码'}
+        ,{field: 'sex', title: '性别',width:60}
+        ,{field: 'birthDate', title: '生日'}
+        ,{field: 'address', title: '地址'}
+        ,{field: 'email', title: '邮箱'}
+        ,{field: 'state', title: '状态',width:60}
+        ,{field: 'createTime', title: '创建时间'}
+        ,{field: 'updateTime', title: '更新时间'}
+        ,{title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
+        ]
+            ]
+        });
+                table.on('toolbar(test)', function (obj) {
+                    if (obj.event === 'add') {  // 监听添加操作
+                        var index = layer.open({
+                            title: '添加人员',
+                            type: 2,
+                            shade: 0.2,
+                            maxmin:true,
+                            shadeClose: true,
+                            area: ['70%', '70%'],
+                            content: '../userAdd.html'
+                        });
+                        $(window).on("resize", function () {
+                            layer.full(index);
+                        });
+                    } else if (obj.event === 'delete') {  // 监听删除操作
+                        var checkStatus = table.checkStatus('currentTableId')
+                            , data = checkStatus.data;
+                        layer.alert(JSON.stringify(data));
+                    }
+                });
+
+                form.on('submit(data-search-btn)', function (data) {
+                    //执行搜索重载
+                    table.reload('tableOne', {
+                        url:"/userSearch",
+                        type:"post",
+                        page: {
+                            curr: 1
+                        }
+                        , where: {
+                            mobile:data.field.mobile,
+                            sex:data.field.sex,
+                            address:data.field.address
+                        }
+                    });
+
+                    return false;
+                });
+
+                function setFormValue(obj,data){
+                    form.val("updateSubmit",{
+                        "mobile":data.mobile,
+                        "password":data.password,
+                        "sex":data.sex,
+                        "birthDate":data.birthDate,
+                        "address":data.address,
+                        "email":data.email,
+                        "state":data.state
+                    })
+
+                    form.on('submit(updateSubmit)',function (data) {
+                        datas = data.field
+                        console.log(datas)
+                        $.ajax({
+                            url:'/updateUser',
+                            data:datas,
+                            type: 'POST',
+                            success:function (result) {
+                                if (result==="200"){
+                                    layer.msg("修改成功", {
+                                        icon:6,
+                                        time:500
+                                    },function () {
+                                        parent.window.location.reload();
+                                        var iframeIndex = parent.layer.getFrameIndex(window.name);
+                                        parent.layer.close(iframeIndex);
+                                    })
+
+                                }else {
+                                    layer.msg("修改失败")
+                                }
+                            }
+                        });
+                    })
+                }
+
+                table.on('tool(test)', function (obj) {
+                    var data = obj.data;
+                    if (obj.event === 'edit') {
+
+                        var index = layer.open({
+                            title: '编辑用户',
+                            type: 1,
+                            area: ['70%', '70%'],
+                            content: $("#userUpdate")
+                        });
+                        setFormValue(obj,data)
+                        $(window).on("resize", function () {
+                            layer.full(index);
+                        });
+                        return false;
+                    } else if (obj.event === 'delete') {
+                        layer.confirm('您确定要删除吗？', function (index) {
+                            $.ajax({
+                                url:"/deleteUser",
+                                type:"post",
+                                data:{"id":data.id},
+                                success:function (re) {
+                                    if (re==="200"){
+                                        layer.msg("删除成功", {
+                                            icon:6,
+                                            time:500
+                                        },function () {
+                                            parent.window.location.reload();
+                                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                                            parent.layer.close(iframeIndex);
+                                        })
+
+                                    }else {
+                                        layer.msg("删除失败")
+                                    }
+                                }
+                            })
+                            obj.del();
+                            layer.close(index);
+                        });
+                    }
+                });
+            });
+        </script>
+
+
+<div class="layui-form layuimini-form" id="userUpdate" style="display: none" lay-filter="updateSubmit">
+    <div class="layui-form-item">
+        <label class="layui-form-label required">电话</label>
+        <div class="layui-input-block">
+            <input type="text" name="mobile" lay-verify="required" lay-reqtext="电话不能为空" placeholder="请输入电话" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">密码</label>
+        <div class="layui-input-block">
+            <input type="password" name="password" lay-verify="required" lay-reqtext="密码不能为空" placeholder="请输入密码" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">性别</label>
+        <div class="layui-input-block">
+            <input type="radio" name="sex" value="男" title="男" checked="">
+            <input type="radio" name="sex" value="女" title="女">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">生日</label>
+        <div class="layui-input-block">
+            <input type="date" name="birthDate" lay-verify="required" lay-reqtext="生日不能为空" placeholder="请输入生日" value="" class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">地址</label>
+        <div class="layui-input-block">
+            <input type="text" name="address" placeholder="请输入地址" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">邮箱</label>
+        <div class="layui-input-block">
+            <input type="text" name="email" placeholder="请输入邮箱" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">状态</label>
+        <div class="layui-input-block">
+            <input type="radio" name="state" value="1" title="正常" checked="">
+            <input type="radio" name="state" value="-1" title="已删除">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="updateSubmit">确认保存</button>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>
